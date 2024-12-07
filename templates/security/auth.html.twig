@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fuzzle Giggle</title>
+    <link rel="stylesheet" href="{{ asset('styles/app.css') }}">
+    <link rel="stylesheet" href="{{ asset('styles/auth.css') }}">
+</head>
+<body>
+<div id="container">
+    <h1>{{ type == 'login' ? 'Login':'Register' }}</h1>
+    {% set flashes = app.flashes('error') %}
+    {% if flashes is not empty %}
+        <ul class="alert_container">
+            {% for message in flashes %}
+                <li class="alert">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    {% set flashesInput = app.flashes('error_input') %}
+    <div id="form_container">
+        <form action="{{  path(type == 'login' ? 'login_post':'register_post') }}" method="post">
+            {% if(type == 'login') %}
+                <label for="user_email">Email</label>
+                <input class="text_input {{ 'email' in flashesInput ? "danger":""}}" id="user_email" name="email" type="email" value=""
+                       placeholder="johndoe@gmail.com" autofocus/>
+                <label for="user_password">Password</label>
+                <input class="text_input {{ 'password' in flashesInput ? "danger":""}}" id="user_password" name="password" type="password" value=""
+                       placeholder="••••••••••"/>
+                <input id="form_submit" type="submit" value="Confirm"/>
+            {% else %}
+                <label for="user_username">Username</label>
+                <input class="text_input {{ 'username' in flashesInput ? "danger":""}}" id="user_username" name="username" type="text" value="" placeholder="John"
+                       autofocus/>
+                <label for="user_email">Email</label>
+                <input class="text_input {{ 'email' in flashesInput ? "danger":""}}" id="user_email" name="email" type="email" value=""
+                       placeholder="johndoe@gmail.com" autofocus/>
+                <label for="user_password">Password</label>
+                <input class="text_input {{ 'password' in flashesInput ? "danger":""}}" id="user_password" name="password" type="password" value=""
+                       placeholder="••••••••••"/>
+                <label for="user_confirm_password">Confirm password</label>
+                <input class="text_input {{ 'confirm_password' in flashesInput ? "danger":""}}" id="user_confirm_password" name="confirm_password" type="password" value=""
+                       placeholder="••••••••••"/>
+                <input id="form_submit" type="submit" value="Register"/>
+            {% endif %}
+        </form>
+        <a href="#">{{ type == 'login' ? 'Forget password':'' }}</a>
+    </div>
+    {% if(type == 'login') %}
+        <a href="/register">Create an account</a>
+    {% else %}
+        <a href="/login">Already have an account</a>
+    {% endif %}
+</div>
+
+</body>
+</html>
