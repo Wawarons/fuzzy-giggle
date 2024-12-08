@@ -84,6 +84,7 @@
     border-radius: 10px;
 }
 
-.danger {
-    border: 2px solid red !important;
+.input_error {
+    color: rgba(255, 96, 96, 0.66);
+    font-weight: normal;
 }

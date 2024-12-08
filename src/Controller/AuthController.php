@@ -3,37 +3,23 @@
 namespace App\Controller;
 
 use App\Entity\Customer;
-use App\Security\SecurityAuthenticator;
-use Doctrine\ORM\EntityManager;
+use App\Repository\CustomerRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
 
 class AuthController extends AbstractController
 {
-    #[Route('/auth/login', name: 'login_post', methods: ['POST'])]
-    public function loginUser(
-        Request $request,
-        EntityManagerInterface $entityManager,
-        UserAuthenticatorInterface $userAuthenticator,
-        SecurityAuthenticator $authenticator
-    ): Response {
-        $email = $request->request->get('email');
-        $password = $request->request->get('password');
 
-        // Récupérer l'utilisateur via Doctrine
-        $user = $entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
+    private CustomerRepository $customerRepository;
 
-        if (!$user || !$this->isPasswordValid($user, $password)) {
-            $this->addFlash('error', 'Invalid credentials.');
-            return $this->redirectToRoute('login');
-        }
-
-        // Authentifier l'utilisateur
-        return $userAuthenticator->authenticateUser($user, $authenticator, $request);
+    public function __construct(CustomerRepository $customerRepository)
+    {
+        $this->customerRepository = $customerRepository;
     }
 
     #[Route('/login', name: 'login')]
@@ -53,53 +39,74 @@ class AuthController extends AbstractController
     }
 
     #[Route('/auth/register', name: 'register_post', methods: ['POST'])]
-    public function registerUser(Request $request, EntityManagerInterface $entityManager): Response
+    public function registerUser(Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher): Response
     {
-        $username = $request->request->get('username');
-        $email = $request->request->get('email');
+        $username = strtolower($request->request->get('username'));
+        $email = strtolower($request->request->get('email'));
         $password = $request->request->get('password');
         $confirm_password = $request->request->get('confirm_password');
 
 
-        if(empty($username) || empty($email) || empty($password) || empty($confirm_password)) {
+        //Validation inputs
+        if (empty($username) || empty($email) || empty($password) || empty($confirm_password)) {
 
-
+            //Check username not null
             if (empty($username)) {
-                $this->addFlash('error_input', "username");
-                $this->addFlash('error', 'Username is required');
+                $this->addFlash('username', 'Username is required');
             }
+
+            //Check email not null
             if (empty($email)) {
-                $this->addFlash('error_input', "email");
-                $this->addFlash('error', 'Email is required');
+                $this->addFlash('email', 'Email is required');
             }
+
+            //Check password not null
             if (empty($password)) {
-                $this->addFlash('error_input', "password");
-                $this->addFlash('error', 'Password is required');
+                $this->addFlash('password', 'Password is required');
             }
+            //Check confirm password not null
             if (empty($confirm_password)) {
-                $this->addFlash('error_input', "confirm_password");
-                $this->addFlash('error', 'Confirm password is required');
+                $this->addFlash('confirm_password', 'Confirm password is required');
             }
 
             return $this->redirectToRoute('register');
         }
 
-        if($password != $confirm_password) {
+        //Check if password and confirm password are equals
+        if ($password != $confirm_password) {
             $this->addFlash('error', 'Passwords do not match');
-            $this->addFlash('error_input', "password");
-            $this->addFlash('error_input', "confirm_password");
+            return $this->redirectToRoute('register');
+        }
+        //Check if email and username is already register
+        $emailAlreadyExists = $this->customerRepository->findOneByEmail($email);
+        $usernameAlreadyExists = $this->customerRepository->findOneByUsername($username);
+
+        if ( $emailAlreadyExists || $usernameAlreadyExists ) {
+            $emailAlreadyExists && $this->addFlash('email', "Email already register.");
+            $usernameAlreadyExists && $this->addFlash('username', "Username already taken.");
             return $this->redirectToRoute('register');
         }
 
+
+//Create new User
         $user = new Customer();
         $user->setUsername($username);
         $user->setEmail($email);
-        $user->setPassword(password_hash($password, PASSWORD_DEFAULT));
+        $user->setPassword($passwordHasher->hashPassword($user, $password));
 
+//push it to the database
         $entityManager->persist($user);
         $entityManager->flush();
 
+//Redirect user to the login page
         return $this->redirectToRoute('login');
+    }
 
+    #[
+        Route('/logout', name: 'logout')]
+    public function logout(SessionInterface $session): Response
+    {
+        $session->clear();
+        return $this->redirectToRoute('/');
     }
 }

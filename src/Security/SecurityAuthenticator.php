@@ -3,54 +3,64 @@
 // src/Security/AppCustomAuthenticator.php
 namespace App\Security;
 
+use App\Entity\Customer;
+use App\Repository\CustomerRepository;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Exception\AuthenticationException as SymfonyAuthenticationException;
-use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Authenticator\AbstractAuthenticator;
+use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
+use Symfony\Component\Security\Http\Authenticator\Passport\Credentials\PasswordCredentials;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 
 class SecurityAuthenticator extends AbstractAuthenticator
 {
+    private CustomerRepository $customerRepository;
+    private RequestStack $requestStack;
+    public function __construct(CustomerRepository $customerRepository, RequestStack $requestStack)
+    {
+        $this->customerRepository = $customerRepository;
+        $this->requestStack = $requestStack;
+    }
+
     public function supports(Request $request): ?bool
     {
-// Vérifie si la requête est pour le formulaire de connexion
         return $request->getPathInfo() === '/login' && $request->isMethod('POST');
     }
 
     public function authenticate(Request $request): Passport
     {
-        $email = $request->request->get('email');
-        $password = $request->request->get('password');
+        $email = $request->request->get('_username');
+        $password = $request->request->get('_password');
 
-// Validation et recherche de l'utilisateur
         $user = $this->getUserByEmail($email);
 
         if (!$user || !password_verify($password, $user->getPassword())) {
             throw new SymfonyAuthenticationException('Invalid credentials');
         }
 
-        return new UsernamePasswordToken($user, 'main', $user->getRoles());
+        return new Passport(new UserBadge($user->getEmail()), new PasswordCredentials($password));
     }
 
-    public function onAuthenticationFailure(Request $request, AuthenticationException|SymfonyAuthenticationException $exception): ?Response
+    public function onAuthenticationFailure(Request $request, SymfonyAuthenticationException $exception): ?RedirectResponse
     {
-// Redirige vers la page de connexion avec un message d'erreur
-        $this->addFlash('error', 'Invalid credentials');
+        $session = $this->requestStack->getSession();
+        $session->getFlashBag()->add('login_error', "Authentication failed");
         return new RedirectResponse('/login');
     }
 
     public function onAuthenticationSuccess(Request $request, UsernamePasswordToken|TokenInterface $token, string $firewallName): ?Response
     {
-// Redirige vers la page d'accueil après la connexion réussie
         return new RedirectResponse('/');
     }
 
-    private function getUserByEmail(string $email): ?UserInterface
+    private function getUserByEmail(string $email): ?Customer
     {
-// Cette méthode peut récupérer l'utilisateur depuis la base de données, par exemple avec Doctrine.
-        return $this->userRepository->findOneByEmail($email);
+        return $this->customerRepository->findOneByEmail($email);
     }
 }
