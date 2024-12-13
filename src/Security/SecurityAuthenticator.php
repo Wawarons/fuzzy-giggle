@@ -1,6 +1,5 @@
 <?php
 
-// src/Security/AppCustomAuthenticator.php
 namespace App\Security;
 
 use App\Entity\Customer;

@@ -1,10 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Fuzzle Giggle</title>
-    <meta charset="utf-8">
-</head>
-<body>
-
-</body>
-</html>
+{% extends 'includes/header.html.twig' %}
+{% block body %}
+    {% if current_user() %}
+        {# if user connected #}
+    {% else %}
+        {# if user is not connected #}
+    {% endif %}
+{% endblock %}

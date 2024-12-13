@@ -10,6 +10,10 @@ class IndexController extends AbstractController {
     #[Route('/', name: 'index')]
     public function indexAction()
     {
-        return $this->render('base.html.twig');
+        $user = $this->getUser();
+
+        return $this->render('base.html.twig', [
+            'user' => $user,
+        ]);
     }
 }

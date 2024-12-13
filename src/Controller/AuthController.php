@@ -11,15 +11,19 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 class AuthController extends AbstractController
 {
 
     private CustomerRepository $customerRepository;
+    private ValidatorInterface $validator;
 
-    public function __construct(CustomerRepository $customerRepository)
+    public function __construct(CustomerRepository $customerRepository, ValidatorInterface $validator)
     {
         $this->customerRepository = $customerRepository;
+        $this->validator = $validator;
     }
 
     #[Route('/login', name: 'login')]
@@ -46,6 +50,18 @@ class AuthController extends AbstractController
         $password = $request->request->get('password');
         $confirm_password = $request->request->get('confirm_password');
 
+        $errors = $this->validator->validate($password, [
+            new Assert\Regex([
+                'pattern' => '/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-\.]).{8,}$/',
+                'message' => 'Password must include uppercase, lowercase, number, and special character.'
+            ]),
+        ]);
+
+        if(count($errors) > 0) {
+            $this->addFlash('password', $errors[0]->getMessage());
+            return $this->redirectToRoute('register');
+        }
+
 
         //Validation inputs
         if (empty($username) || empty($email) || empty($password) || empty($confirm_password)) {
@@ -64,6 +80,7 @@ class AuthController extends AbstractController
             if (empty($password)) {
                 $this->addFlash('password', 'Password is required');
             }
+
             //Check confirm password not null
             if (empty($confirm_password)) {
                 $this->addFlash('confirm_password', 'Confirm password is required');
@@ -81,7 +98,7 @@ class AuthController extends AbstractController
         $emailAlreadyExists = $this->customerRepository->findOneByEmail($email);
         $usernameAlreadyExists = $this->customerRepository->findOneByUsername($username);
 
-        if ( $emailAlreadyExists || $usernameAlreadyExists ) {
+        if ($emailAlreadyExists || $usernameAlreadyExists) {
             $emailAlreadyExists && $this->addFlash('email', "Email already register.");
             $usernameAlreadyExists && $this->addFlash('username', "Username already taken.");
             return $this->redirectToRoute('register');

@@ -10,3 +10,40 @@ body {
     font-family: "Prompt", sans-serif;
 }
 
+header {
+    width: 100%;
+    height: fit-content;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header #search {
+    width: 25%;
+    font-family: 'Prompt', sans-serif;
+    min-width: 200px;
+    padding: 10px;
+    border-radius: 10px;
+    border: 2px solid var(--main-color);
+}
+
+header #user_picture {
+    border-radius: 50%;
+    margin: 0 15px;
+}
+
+header #login_button {
+    text-decoration: none;
+    background-color: #FFFFFF;
+    color: var(--main-color);
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin: 0 15px;
+    box-shadow: rgba(0, 0, 0, 0.12) 0 1px 3px, rgba(0, 0, 0, 0.24) 0 1px 2px;
+    transition: .2s;
+}
+
+header #login_button:hover {
+    box-shadow: none;
+}
+

@@ -1,0 +1,49 @@
+{% extends 'includes/header.html.twig' %}
+    {% block styles %}
+        {{ parent() }}
+        <link rel="stylesheet" href="{{ asset('styles/settings.css') }}">
+    {% endblock %}
+
+{% block body %}
+    {% if user %}
+        <h1 id="title">Settings</h1>
+        <div id="settings_container">
+            <aside id="menu">
+                <a class="menu_item">User profile</a>
+                <a class="menu_item">Privacy</a>
+                <a class="menu_item">Notifications</a>
+                <a class="menu_item">Visibility</a>
+                <a class="menu_item">Account</a>
+                <a class="menu_item">Report</a>
+            </aside>
+            <div id="data_container">
+                <div>
+                    <div class="data_item">
+                        <label for="username">Username</label>
+                        <input id="username" type="text" value="{{ user.getUsername() }}" readonly>
+                    </div>
+                    <div>
+                        <img src="https://placehold.co/50x50" alt="profile picture" width="50" height="50"/>
+                    </div>
+                </div>
+                <div>
+                    <div class="data_item">
+                        <p>Email: {{ user.getEmail() }}</p>
+                    </div>
+                    <div>
+                        <p>Date: {{ user.getFormatedCreatedAt() }}</p>
+                    </div>
+                </div>
+{#                <div>#}
+{#                    <div class="data_item">#}
+{#                        <p>E-mail: {{ user.getEmail() }}</p>#}
+{#                    </div>#}
+{#                <div class="data_item">#}
+{#                    <p>Birth account: {{ user.getFormatedCreatedAt() }}</p>#}
+{#                </div>#}
+{#                </div>#}
+            </div>
+        </div>
+
+    {% endif %}
+{% endblock %}

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>{% block title %} Fuzzle Giggle {% endblock %}</title>
+    <link rel="icon" type="image/x-icon" href="{{ asset('/images/logo_rainette.ico') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% block styles %}
         <link rel="stylesheet" href="{{ asset('styles/app.css') }}">
@@ -10,7 +11,18 @@
 </head>
 <body>
 <header>
-    <h1>Fuzzle</h1>
+    <div style="display: flex; color: white;">
+        <a href="/"><img src="{{ asset('images/logo_rainette_nbg.png') }}" alt="logo Fuzzle Giggle" width="100" height="100"></a>
+        <h1>Fuzzle</h1>
+    </div>
+    {% if current_user() %}
+            <input type="search" id="search" placeholder="Search"/>
+            <a href="profile">
+                <img id="user_picture" src="https://placehold.co/50x50" alt="profile picture" width="50" height="50"/>
+            </a>
+    {% elseif app.request.pathinfo != '/login' %}
+        <a href="login" id="login_button">Login</a>
+    {% endif %}
 </header>
 {% block body %}
 {% endblock %}

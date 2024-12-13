@@ -25,8 +25,9 @@ class Customer implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 255)]
     #[Assert\Regex(
-        pattern: '^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$',
+        pattern: '/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/i',
         message: 'Password must include uppercase, lowercase, number, and special character.',
+        htmlPattern: '^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$',
         match: true
     )]
     private ?string $password;
@@ -107,6 +108,10 @@ class Customer implements UserInterface, PasswordAuthenticatedUserInterface
     public function getCreatedAt(): ?DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    public function getFormatedCreatedAt(): string {
+        return $this->createdAt->format('Y-m-d');
     }
 
     public function setCreatedAt(DateTimeImmutable $createdAt): static
